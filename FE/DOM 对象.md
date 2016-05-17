@@ -60,7 +60,7 @@ alert (returnNode === someNode.firstChild) //true 插入成为第一个节点
 
 - replaceChild（）方法接受两个参数，插入的节点和要替换的节点，替换。
 - removeChild（）方法接受一个参数，移除节点。
-- cloneNode（）方法克隆节点，接受一个布尔值，true 表示深复制，也就是节点和整个子节点树。false 表示只复制节点本身。`需要注意的是，这个节点返回的是复制后的节点，还需要手动方法把它插入到文档树中去。`
+- cloneNode（）方法克隆节点，接受一个布尔值，true 表示深复制，也就是节点和整个子节点树。false 表示只复制节点本身。**需要注意的是，这个节点返回的是复制后的节点，还需要手动方法把它插入到文档树中去。**
 - normalize()方法处理文档树中的文本节点，如果找到空文本节点就删除它，如果找到相邻的文本节点就合并为一个文本节点。
 
 ## Document 类型
@@ -126,4 +126,5 @@ alert(newNode.nodeValue)  //'world!'
 
 ## Attr 类型
 - nodeType 的值为2，nodeName 值为特性的名称，nodeValue 值为特性的值。
-- 
+- 实际上，使用 getAttrbute()，setAtrribute(),removeAttribute()方法比操作节点更为方便。
+
