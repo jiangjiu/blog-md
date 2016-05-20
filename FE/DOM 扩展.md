@@ -106,4 +106,82 @@ div.dataset.appId = 23456
 div.dataset.myname = 'Michael'
 ```
 
-如果给元素添加一些不可见的数据一遍进行其他处理，在跟踪连接和混搭应用中，自定义属性能方便的知道点击来自哪里。
+- 如果给元素添加一些不可见的数据一遍进行其他处理，在跟踪连接和混搭应用中，自定义属性能方便的知道点击来自哪里。
+
+### 插入标记
+- 通过 DOM 操作节点相对麻烦，因为不仅要创建，还要按照正确的顺序连接。使用插入标记的技术，直接插入 HTML 字符串更简单，速度也更快。
+
+#### innerHTML 属性
+- 读模式下，innerHTML 属性返回与调用元素的所有子节点（元素，注释，文本节点）对应的 HTML 标记。
+- 写模式下，innerHTML 会根据指定的值创建新的 DOM 树，新的 DOM 树会完全取代原来的 DOM 节点。
+
+```javascript
+
+<div id="content">
+  <p>this is a <strong>paragraph</strong>with a list following it</p>
+  <ul>
+    <li>Item1</li>
+    <li>Item2</li>
+    <li>Item3</li>
+  </ul>
+</div>
+
+//对于上面的div 元素来说，它的 innerHTML 会返回如下字符串
+  <p>this is a <strong>paragraph</strong>with a list following it</p>
+  <ul>
+    <li>Item1</li>
+    <li>Item2</li>
+    <li>Item3</li>
+  </ul>
+```
+
+- 尽量注意，在通过 innerHTML 插入代码时，尽量收工检查一下其中的文本内容。
+
+#### outerHTML 属性
+- 基本同上，需要注意的是返回也会包括自身，看下面的例子。
+
+```javascript
+
+<div id="content">
+  <p>this is a <strong>paragraph</strong>with a list following it</p>
+  <ul>
+    <li>Item1</li>
+    <li>Item2</li>
+    <li>Item3</li>
+  </ul>
+</div>
+
+//对于上面的div 元素来说，它的 outerHTML 会返回如下字符串
+<div id='content'>
+  <p>this is a <strong>paragraph</strong>with a list following it</p>
+  <ul>
+    <li>Item1</li>
+    <li>Item2</li>
+    <li>Item3</li>
+  </ul>
+</div>  
+```
+
+#### insertAdjacentHTML()方法
+- 接受两个参数，插入位置和要插入的 HTML 文本。
+- 太乱，不写了。
+
+```javascript
+//作为一个同辈元素插入
+element.insertAdjacentHTML('beforebegin', '<p>helloworld</p>')
+```
+
+#### 内存与性能问题
+- 在使用 innerHTML、outerHTML、insertAdjacentHTML()方法最好收工删除要被替换的元素的所有事件处理程序和 Javascript 对象属性。因为在使用前述某个属性将该元素从文档树中删除后，元素与事件处理程序之间的绑定关系在内存中并没有一并删除。如果这种情况频繁出现，页面占用的内存数量就会明显增加。
+- 再插入大量新 HTML 标记时，使用 innerHTML 属性与通过多次 DOM 操作先创建节点在指定他们的关系相比，效率高得多。因为设置 innerHTML 时，会创建 HTML 解析器（通常是 C++编写），比执行 js 快得多。
+- 创建和销毁 HTML 解析器也会带来性能损失，所以最好不要频繁设置 innerHTML 等属性。
+
+#### scrollIntoView()方法
+- scrollIntoView()可以在所有 HTML 元素上调用，给方法传入 true 或者不传参，调用元素的顶部会与视窗顶部尽量平齐，如果传入 false，调用元素会尽量全部出现在视窗中。
+
+```javascript
+var div = document.querySelector('#b_fav')
+
+div.scrollIntoView() //滚动至div 出现在视窗页面顶部
+```
+
