@@ -38,6 +38,14 @@ JSON之所以流行，主要的是可以把 JSON 数据结构解析为有用的 
 
 ### JSON.stringify()
 
+#### JSON.stringify()方法序列化的内部顺序：
+
+1. 如果存在 toJSON()方法，首先调用该方法，否则返回对象本身。
+2. 如果提供第二个参数，应用这个函数过滤器，第一个参数值为第一步传入的值。
+3. 对第二步返回的每个值进行相应的序列化。
+4. 如果提供了第三个参数，执行相应的序列化。
+
+
 - JSON.stringify()用于把 js 对象序列化为 JSON 字符串。
 
 ```javascript
@@ -68,7 +76,7 @@ var jsonText = JSON.stringify(book, ["title", "edition"])
 - 如果第一个传入参数是函数，函数接受(key, value)两个参数，根据属性名分别处理属性，属性名只能是字符串。如果返回值是 undefined，那么相应的属性就不会出现在返回的 JSON 字符串中了。相当于删除该属性。
 
 ```javascript
-var jsonText = JSON.stringfy(book, function(key, value){  //传入一个函数处理 key value
+var jsonText = JSON.stringify(book, function(key, value){  //传入一个函数处理 key value
 	switch(key){
 		case "authors":				
 			return value.join(',')	//没有 break 注意
@@ -86,8 +94,44 @@ var jsonText = JSON.stringfy(book, function(key, value){  //传入一个函数�
 ```
 
 - 第三个参数用于处理缩进和空白符。如果是数值，那么代表缩进的空格数。如果是字符串，代表空白符。
-- 无论是数值还是字符串，
+- 无论是数值还是字符串，都只会保留10位，超出的会被忽略，结果中只会出现10个空格或前十个字符。
+
+```javascript
+var jsonText = JSON.stringify(book, null, 4) //缩进4个字符
+var jsonText = JSON.stringify(book, null, '----') //缩进4个制表符
+```
+
+- toJSON()方法。任何对象都可以添加 toJSON 方法，通过设置返回值使 JSON.stringify()生效。如果返回值为 undefined，如果是顶级对象，结果是 undefined，如果是包含在其他对象中，它的值为 null。
+
+
+```javascript
+ var book = {
+    title: 'professional js',
+    authors: [
+      'Nicholas'
+    ],
+    edition: 3,
+    year: 2001,
+    toJSON: function () {  //自定义 toJSON()方法
+      return this.title
+    }
+  }
+
+  var jsonText = JSON.stringify(book)
+  console.log(jsonText)  // 返回的JSON 对象为"professional js"
+```
 
 ### JSON.parse()
 
 - JSON.parse()用于把 JSON 字符串解析为原生 js 值。
+- 和 JSON.stringify()方法类似，parse()也可以接受第二个参数，是一个函数，将在每一个键值对上调用。参数也是 key、value 的形式。
+
+```javascript
+var bookCopy = JSON.parse(jsonText, function(key, value) {
+	if (key === "releaseDate") {	//通过判断 key，来进行相应 value 的操作
+		return new Date(value)
+	} else {
+		return value
+	}
+})
+```

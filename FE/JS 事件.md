@@ -209,7 +209,7 @@ $('#div').on('cat', function(){}) //绑定事件
 $('#div').trigger('cat') //触发事件
 ```
 
-#参考资料
+# 参考资料
 
 [最详细的 js 事件](http://www.admin10000.com/document/6089.html) 
 
