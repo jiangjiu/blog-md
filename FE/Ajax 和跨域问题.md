@@ -112,3 +112,100 @@ xhr.open('get', url, true)
 xhr.send(null)
 ```
 
+### progress 事件
+- xhr.onprogress()事件会接收一个 event 对象，target 属性指向 xhr 对象，有三个额外的属性。
+
+属性值|说明
+---|---
+event.lengthComputable|进度信息是否可用的布尔值
+event.position|表示已经接收的字节数
+event.totalSize|表示根据 Content-Length 响应头部确定的预期字节数
+
+```javascript
+var xhr = new XMLHttpRequest()
+xhr.onprogress = function(e) { //进度事件
+	if(e.lengthComputable) {  
+		var divProgress = document.getElementbyId('div')
+		divProgress.innerHTML = e.position + '/' + e.totalSize
+	}
+}
+xhr.onload = function() {...}
+	//记得 progress 事件要在 open 之前调用，和 onload 一样
+xhr.open(...)
+xhr.send(null)
+```
+
+# 同源政策规避及跨域资源共享
+## 同源政策
+同源指三个方面：协议，端口，域名。三者全部相同才是同源。同源政策是安全基石，如果 Cookie 包含隐私，或者登录状态，假设 A 网站是银行， B 网站可以直接读取用户的 Cookie，那么用户隐私会被泄露，冒充登录等。**因为浏览器规定，表单提交不受同源政策限制。**
+
+目前有三种行为受同源政策限制。
+
+1. Cookie、LocalStorage 和 IndexDB 无法读取。
+2. DOM 无法获得。
+3. AJAX 请求无法发送。
+
+### Cookie
+Cookie 是服务器写入浏览器的一小段信息，只有同源网页才可以共享。但是如果两个网页一级域名相同，只有二级域名不同，浏览器允许通过设置 document.domain 共享 Cookie。
+
+**需要注意的是，这种方法只适用 Cookie 和 iframe.** LocalStorage 和 IndexDB 需要使用下面的 PostMessage API.
+
+```javascript
+//假设 A 网页是 http://w1.baidu.com/a.html,B网页是 http://w2.baidu.com/b.html
+//在 两个 网页下都设置
+document.domain = 'baidu.com'
+
+//在 A 网页下
+document.cookie = 'test1=hello'  
+//在 B 网页下就可以读到这个 cookie
+var cook = document.cookie
+```
+```javascript
+//另外服务器端可以在设置 cookie 时指定 cookie 所属域名为一级域名，比如.baidu.com,这样二级域名三级域名都不需要任何设置就可以读取 cookie。
+Set-Cookie: key=value; domain=.baidu.com;path=/
+```
+
+### iframe
+如果两个窗口，比如 iframe 或者 window.open() 打开的窗口，一级域名相同，只是二级不同，可以设置 domain 规避同源政策拿到 DOM。
+完全不同源的网站，目前有三种给你方法解决跨域窗口通信问题。
+
+1. 片段识别符( fragment identifier)
+2. window.name
+3. 跨文档通信 API (Cross-document messaging)
+
+#### 片段识别符
+片段识别符就是 url 后面的#后面的部分。如果只是改变锚点，页面不会刷新。
+
+```javascript
+//父窗口写入子窗口
+var src = url + '#' + data
+document.getElementById('myIframe').src = src
+//子窗口监听锚点改变
+window.onhashchange = function() {
+	var message = window.location.hash
+}
+
+//子窗口写入父窗口
+parent.location.href = target + '#' + hash
+```
+
+#### window.name
+浏览器有一个 window.name 属性，只要在一个标签内打开的网页是可以读取这个属性值的。
+这个属性可以存很长容量的字符串，缺点是父窗口要监听 window.name 属性，影响页面性能。
+使用方法：
+
+1. 父窗口内打开非同源子窗口
+2. 子窗口设置 window.name 属性
+3. 子窗口跳转到同域的网址
+4. 因为已经同源，父窗口现在可以读取子窗口 window.name 属性了
+
+```javascript
+window.name = data  //第二步 子窗口写入数据
+
+window.location.href = 'http://parent.baidu.com/xxxx.html' //第三步跳转到同源网址
+
+//在父窗口下读取数据
+var data = document.getElementById('myIframe').contentWindow.name  
+```
+
+#### window.postMessage
