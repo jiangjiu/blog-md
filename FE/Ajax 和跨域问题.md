@@ -110,7 +110,6 @@ xhr.onload = function() { //实际只是少了 readyState判断，相比之下
 }
 xhr.open('get', url, true)
 xhr.send(null)
-```
 
 ### progress 事件
 - xhr.onprogress()事件会接收一个 event 对象，target 属性指向 xhr 对象，有三个额外的属性。
@@ -124,7 +123,7 @@ event.totalSize|表示根据 Content-Length 响应头部确定的预期字节数
 ```javascript
 var xhr = new XMLHttpRequest()
 xhr.onprogress = function(e) { //进度事件
-	if(e.lengthComputable) {  
+	if(e.lengthComputable) {
 		var divProgress = document.getElementbyId('div')
 		divProgress.innerHTML = e.position + '/' + e.totalSize
 	}
@@ -156,7 +155,7 @@ Cookie 是服务器写入浏览器的一小段信息，只有同源网页才可�
 document.domain = 'baidu.com'
 
 //在 A 网页下
-document.cookie = 'test1=hello'  
+document.cookie = 'test1=hello'
 //在 B 网页下就可以读到这个 cookie
 var cook = document.cookie
 ```
@@ -205,7 +204,81 @@ window.name = data  //第二步 子窗口写入数据
 window.location.href = 'http://parent.baidu.com/xxxx.html' //第三步跳转到同源网址
 
 //在父窗口下读取数据
-var data = document.getElementById('myIframe').contentWindow.name  
+var data = document.getElementById('myIframe').contentWindow.name
 ```
 
 #### window.postMessage
+上述两种是破解方法，html5提供了原生的夸文档消息传递，简称 XDM。兼容性IE8+。
+既稳妥又简单的实现跨文档通信，比如 www.baidu.com 向 内嵌的一个p2p.baidu.com 页面进行通信。
+核心是 postMessage()方法，接受两个字符串参数，传递的参数字符串和接收消息的窗口源，如果设置为*代表任意窗口都可以接收。第二个参数非常重要，防止发送到不安全的地方。
+
+message事件参数：
+
+1. e.data:传递的参数字符串(虽然不一定是字符串，但是最好还是用 JSON.stringify()方法转成字符串再传递)
+2. e.origin:消息发到了哪个域
+3. e.source: 发送消息的的window 对象的代理，并非真是 window对象，所以只使用 postMessage() 方法就好
+
+```javascript
+//子窗口向父窗口传递信息
+var iframeWindow = document.getElementById('myIframe').contentWindow
+iframeWindow.postMessage('hello world', 'http:// www.baidu.com')
+
+//父窗口消息监听 message
+window.onmessage = function(e) {
+	if(e.origin === 'http://www.baidu.com') { //确保消息传递的是给自己的，过滤不属于本窗口的信息
+		processMessage(e.data)
+		e.source.postMessage('received', 'http://p2p.baidu.com') //给子窗口发送回执
+	}
+}
+```
+
+#### LocalStorage
+这个通过 window.postMessage()方法，父子窗口可以相互读写自己的 localStorage.
+
+```javascript
+//父窗口写入子窗口iframe的localStorage
+//父窗口发送信息
+var myIframe = document.getElementById('iframe').contentWindow
+var obj = { name: 'Jack' }
+myIframe.postMessage(JSON.stringify(obj), 'http://p2p.baidu.com')
+
+//子窗口监听 message 事件获取信息写入 localStorage
+myIframe.onmessage = function(e) {
+	if(e.origin === 'http://p2p.baidu.com') {
+		var data = JSON.parse(e.data)
+		localStorage.setItem(data.key, data.value)
+	}
+}
+```
+
+
+# AJAX 请求规避同源限制
+同源政策规定，ajax请求只能发给同源网址，否则就报错。
+除了架设服务器代理（浏览器请求同源服务器，再由后者请求外部服务），有三种方法规避这个限制。
+
+1. JSONP
+2. WebSocket
+3. CORS
+
+## JSONP
+简单使用，浏览器兼容性极佳，但是只能发 GET 请求。
+它的基本思想是，网页通过添加一个`<script>`元素，向服务器请求JSON数据，这种做法不受同源政策限制；服务器收到请求后，将数据放在一个指定名字的回调函数里传回来。
+
+```javascript
+function addScriptTag(src) { //动态增加scirpt
+	var script = document.createElement('script')
+	script.setAttribute('type', 'text/javascript')
+	script.src = src
+	document.body.appendChild(script)
+}
+
+window.onload = function() {  //网页加载后调用方法增加 script 标签
+	addScriptTag('http://www.baidu.com/heiheihei.php?callback=foo')
+}
+
+function foo(data) { //回调函数，只要浏览器定义了这个方法，请求返回后立即调用
+	console.log(data.ip)
+}
+```
+
+## WebSocket
