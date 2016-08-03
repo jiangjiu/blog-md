@@ -110,6 +110,7 @@ xhr.onload = function() { //实际只是少了 readyState判断，相比之下
 }
 xhr.open('get', url, true)
 xhr.send(null)
+```
 
 ### progress 事件
 - xhr.onprogress()事件会接收一个 event 对象，target 属性指向 xhr 对象，有三个额外的属性。
