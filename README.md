@@ -14,7 +14,7 @@
 ### san相关
 * [san的热更新思路&实现](https://github.com/jiangjiu/blog-md/issues/32)
 * [san.nextTick与事件循环](https://github.com/jiangjiu/blog-md/issues/33)
-
+* [封装routeTo方法简化SPA开发](https://github.com/jiangjiu/blog-md/issues/36)
 
 ### 工程化
 * [webpack hot-module-replacement 原理&踩坑](https://github.com/jiangjiu/blog-md/issues/30)
