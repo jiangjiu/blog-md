@@ -21,7 +21,7 @@
 
 ### 工程化
 * [webpack hot-module-replacement 原理&踩坑](https://github.com/jiangjiu/blog-md/issues/30)
-
+* [vscode-eslint无法自动格式化ts文件](https://github.com/jiangjiu/blog-md/issues/40)
 
 
 ### 解决小问题
